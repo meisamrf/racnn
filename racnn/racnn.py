@@ -163,7 +163,7 @@ class vgg16_racnn():
             self.buffer2 = np.zeros((h*w*64*4,), np.float32)
             self.buffer3 = np.zeros((h*w*64*9, ), np.float32)
 
-        racnn_utils.rearrange_weights(self.weights, 'vgg', bypass=bypass)
+        racnn_utils.rearrange_weights(self.weights, 'vgg', bypass=bypass, extra_dim=8)
 
     def vgg_conv_block_bypass(input_size, buffer_in, buffer_out, buffer_tmp, wlayer, ix, 
                               block_count):
@@ -267,7 +267,7 @@ class resnet50_racnn():
             self.buffer3 = np.zeros(((h//4)*(w//4)*64, ), np.float32)
             self.buffer4 = np.zeros(((h//2)*(w//2)*64, ), np.float32)
 
-        racnn_utils.rearrange_weights(self.weights, 'resnet', bypass=bypass)
+        racnn_utils.rearrange_weights(self.weights, 'resnet', bypass=bypass, extra_dim=8)
 
     def resnet_conv_block_racnn(input_size, shortcut_b, buffer1, buffer2, buffer3, wlayer, ix, 
                                  bypass=True):
