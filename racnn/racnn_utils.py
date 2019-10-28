@@ -5,6 +5,17 @@ import numpy as np
 # Weight rearrange functions
 #######################
 
+def mem_align(mem):
+    return mem[(16-((mem.ctypes.data%64)//4))%16:]
+
+def realloc_align(mem):
+    mem_al = np.zeros((mem.size+16,), mem.dtype)
+    idx = (16-((mem_al.ctypes.data%64)//4))%16
+    mem_al = mem_al[idx:idx+mem.size]
+    mem_al = np.reshape(mem_al, mem.shape)
+    np.copyto(mem_al, mem)
+    return mem_al
+    
 def get_bn_weight_bias(wlayer, ix):
 
     bn_gamma, bn_beta, bn_mean, bn_var = wlayer[ix], wlayer[ix+1], wlayer[ix+2], wlayer[ix+3]
@@ -154,4 +165,7 @@ def rearrange_weights(weights, model_type, bypass=False, extra_dim=8):
         w_idx_out, w_idx_in = update_weight_macro_block(weights, w_idx_in, w_idx_out, 3, extra_dim, bypass=bypass)
         w_idx_out, w_idx_in = update_weight_macro_block(weights, w_idx_in, w_idx_out, 5, extra_dim, bypass=bypass)
         w_idx_out, w_idx_in = update_weight_macro_block(weights, w_idx_in, w_idx_out, 2, extra_dim, bypass=bypass)
-        update_weight_dense(weights, w_idx_in, w_idx_out)
+        w_idx_out, w_idx_in = update_weight_dense(weights, w_idx_in, w_idx_out)
+
+    for i in range(w_idx_out):
+        weights[i] = realloc_align(weights[i])
