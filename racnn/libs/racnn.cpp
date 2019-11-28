@@ -32,7 +32,7 @@ void copy3x3(const float *in, float *out, int x, int y, int width, int dim) {
 void copy3x3_opt(const float *in, float *out, int x, int y, int width, int dim) {
 
 	
-	const int VEC = 8;
+	const int VEC = INTR_VEC_SIZE;
 	const float *pin;
 
 	pin = &in[(x - 1 + (y - 1)*width)*dim];
@@ -65,7 +65,7 @@ void copy3x3_opt(const float *in, float *out, int x, int y, int width, int dim) 
 #elif defined(ARM_NEON)
 void copy3x3_opt(const float *in, float *out, int x, int y, int width, int dim) {
 
-	const int VEC = 4;
+	const int VEC = INTR_VEC_SIZE;
 	const float *pin;
 	pin = &in[(x - 1 + (y - 1)*width)*dim];
 	int dim_n_3 = dim * 3 / VEC;
@@ -99,7 +99,7 @@ void copy3x3_opt(const float *in, float *out, int x, int y, int width, int dim) 
 #ifdef AVX_AVX2
 void max3x3_opt(const float *in, float *out, const float *bias, int xo, int yo, int width, int dim) {
 
-	const int VEC = 8;
+	const int VEC = INTR_VEC_SIZE;
 
 	const float *pin;
 	__m256 zero = _mm256_set1_ps(0);
@@ -146,7 +146,7 @@ void max3x3_opt(const float *in, float *out, const float *bias, int xo, int yo, 
 void max3x3cond_opt(const float *in, float *out, const float *bias, int xo,
 	int yo, int height, int width, int dim) {
 
-	const int VEC = 8;
+	const int VEC = INTR_VEC_SIZE;
 
 	const float *pin;
 	__m256 zero = _mm256_set1_ps(0);
@@ -198,7 +198,7 @@ void max3x3cond_opt(const float *in, float *out, const float *bias, int xo,
 #elif defined(ARM_NEON)
 void max3x3_opt(const float *in, float *out, const float *bias, int xo, int yo, int width, int dim) {
 
-	const int VEC = 4;
+	const int VEC = INTR_VEC_SIZE;
 	
 	const float *pin;
 	float32x4_t zero = vdupq_n_f32(0);
@@ -248,7 +248,7 @@ void max3x3_opt(const float *in, float *out, const float *bias, int xo, int yo, 
 void max3x3cond_opt(const float *in, float *out, const float *bias, int xo,
 	int yo, int height, int width, int dim) {
 
-	const int VEC = 4;
+	const int VEC = INTR_VEC_SIZE;
 
 	const float *pin;
 	float32x4_t zero = vdupq_n_f32(0);
@@ -417,11 +417,11 @@ void copy3x3_nc(const float *in, float *out, int x, int y, int width, int dim) {
 #ifdef AVX_AVX2
 inline void copy3x3_nc_opt(const float *in, float *out, int x, int y, int width, int dim) {
 
-	const int VEC = 8;
+	const int VEC = INTR_VEC_SIZE;
 
 	const float *pin;
 	int dim_n_3 = (dim / VEC) * 3;
-	int d_VEC = dim / VEC;
+	int d_n = dim / VEC;
 
 	pin = &in[(x - 1 + (y - 1)*width)*dim];
 	for (int d = dim_n_3; d > 0; d--) {
@@ -432,7 +432,7 @@ inline void copy3x3_nc_opt(const float *in, float *out, int x, int y, int width,
 	}
 
 	pin = &in[(x - 1 + (y)*width)*dim];
-	for (int d = d_VEC; d > 0; d--) {
+	for (int d = d_n; d > 0; d--) {
 		__m256 a = _mm256_load_ps(pin);
 		_mm256_store_ps(out, a);
 		out += VEC;
@@ -440,7 +440,7 @@ inline void copy3x3_nc_opt(const float *in, float *out, int x, int y, int width,
 	}
 
 	pin = &in[(x + 1 + (y)*width)*dim];
-	for (int d = d_VEC; d > 0; d--) {
+	for (int d = d_n; d > 0; d--) {
 		__m256 a = _mm256_load_ps(pin);
 		_mm256_store_ps(out, a);
 		out += VEC;
@@ -460,7 +460,7 @@ inline void copy3x3_nc_opt(const float *in, float *out, int x, int y, int width,
 
 inline void copy3x3_nc_opt(const float *in, float *out, int x, int y, int width, int dim) {
 
-	const int VEC = 4;
+	const int VEC = INTR_VEC_SIZE;
 	const float *pin;
 
 	int dim_n_3 = (dim / VEC) * 3;
@@ -745,12 +745,12 @@ void copy3x3_nc_cond(const float *in, float *out, int x, int y, int height, int 
 #ifdef AVX_AVX2
 inline void copy3x3_nc_cond_opt(const float *in, float *out, int x, int y, int height, int width, int dim) {
 
-	const int VEC = 8;
+	const int VEC = INTR_VEC_SIZE;
 
 	__m256 zero = _mm256_set1_ps(0);
 	const float *pin;
 	int dim_n_3 = (dim / VEC) * 3;
-	int d_VEC = dim / VEC;
+	int d_n = dim / VEC;
 
 	if (y == 0) {
 		for (int d = dim_n_3; d > 0; d--) {
@@ -761,14 +761,14 @@ inline void copy3x3_nc_cond_opt(const float *in, float *out, int x, int y, int h
 	else {
 
 		if (x == 0) {
-			for (int d = d_VEC; d > 0; d--) {
+			for (int d = d_n; d > 0; d--) {
 				_mm256_store_ps(out, zero);
 				out += VEC;
 			}
 		}
 		else {
 			pin = &in[(x - 1 + (y - 1)*width)*dim];
-			for (int d = d_VEC; d > 0; d--) {
+			for (int d = d_n; d > 0; d--) {
 				__m256 a = _mm256_load_ps(pin);
 				_mm256_store_ps(out, a);
 				out += VEC;
@@ -777,21 +777,21 @@ inline void copy3x3_nc_cond_opt(const float *in, float *out, int x, int y, int h
 		}
 
 		pin = &in[(x + (y - 1)*width)*dim];
-		for (int d = d_VEC; d > 0; d--) {
+		for (int d = d_n; d > 0; d--) {
 			__m256 a = _mm256_load_ps(pin);
 			_mm256_store_ps(out, a);
 			out += VEC;
 			pin += VEC;
 		}
 		if (x == width - 1) {
-			for (int d = d_VEC; d > 0; d--) {
+			for (int d = d_n; d > 0; d--) {
 				_mm256_store_ps(out, zero);
 				out += VEC;
 			}
 		}
 		else {
 			pin = &in[(x + 1 + (y - 1)*width)*dim];
-			for (int d = d_VEC; d > 0; d--) {
+			for (int d = d_n; d > 0; d--) {
 				__m256 a = _mm256_load_ps(pin);
 				_mm256_store_ps(out, a);
 				out += VEC;
@@ -801,14 +801,14 @@ inline void copy3x3_nc_cond_opt(const float *in, float *out, int x, int y, int h
 	}
 
 	if (x == 0) {
-		for (int d = d_VEC; d > 0; d--) {
+		for (int d = d_n; d > 0; d--) {
 			_mm256_store_ps(out, zero);
 			out += VEC;
 		}
 	}
 	else {
 		pin = &in[(x - 1 + (y)*width)*dim];
-		for (int d = d_VEC; d > 0; d--) {
+		for (int d = d_n; d > 0; d--) {
 			__m256 a = _mm256_load_ps(pin);
 			_mm256_store_ps(out, a);
 			out += VEC;
@@ -817,14 +817,14 @@ inline void copy3x3_nc_cond_opt(const float *in, float *out, int x, int y, int h
 	}
 
 	if (x == width - 1) {
-		for (int d = d_VEC; d > 0; d--) {
+		for (int d = d_n; d > 0; d--) {
 			_mm256_store_ps(out, zero);
 			out += VEC;
 		}
 	}
 	else {
 		pin = &in[(x + 1 + (y)*width)*dim];
-		for (int d = d_VEC; d > 0; d--) {
+		for (int d = d_n; d > 0; d--) {
 			__m256 a = _mm256_load_ps(pin);
 			_mm256_store_ps(out, a);
 			out += VEC;
@@ -840,14 +840,14 @@ inline void copy3x3_nc_cond_opt(const float *in, float *out, int x, int y, int h
 	else {
 
 		if (x == 0) {
-			for (int d = d_VEC; d > 0; d--) {
+			for (int d = d_n; d > 0; d--) {
 				_mm256_store_ps(out, zero);
 				out += VEC;
 			}
 		}
 		else {
 			pin = &in[(x - 1 + (y + 1)*width)*dim];
-			for (int d = d_VEC; d > 0; d--) {
+			for (int d = d_n; d > 0; d--) {
 				__m256 a = _mm256_load_ps(pin);
 				_mm256_store_ps(out, a);
 				out += VEC;
@@ -856,7 +856,7 @@ inline void copy3x3_nc_cond_opt(const float *in, float *out, int x, int y, int h
 		}
 
 		pin = &in[(x + (y + 1)*width)*dim];
-		for (int d = d_VEC; d > 0; d--) {
+		for (int d = d_n; d > 0; d--) {
 			__m256 a = _mm256_load_ps(pin);
 			_mm256_store_ps(out, a);
 			out += VEC;
@@ -864,14 +864,14 @@ inline void copy3x3_nc_cond_opt(const float *in, float *out, int x, int y, int h
 		}
 
 		if (x == width - 1) {
-			for (int d = d_VEC; d > 0; d--) {
+			for (int d = d_n; d > 0; d--) {
 				_mm256_store_ps(out, zero);
 				out += VEC;
 			}
 		}
 		else {
 			pin = &in[(x + 1 + (y + 1)*width)*dim];
-			for (int d = d_VEC; d > 0; d--) {
+			for (int d = d_n; d > 0; d--) {
 				__m256 a = _mm256_load_ps(pin);
 				_mm256_store_ps(out, a);
 				out += VEC;
@@ -884,7 +884,7 @@ inline void copy3x3_nc_cond_opt(const float *in, float *out, int x, int y, int h
 
 inline void copy3x3_nc_cond_opt(const float *in, float *out, int x, int y, int height, int width, int dim) {
 
-	const int VEC = 4;
+	const int VEC = INTR_VEC_SIZE;
 
 	float32x4_t zero = vdupq_n_f32(0);
 	const float *pin;
@@ -1057,13 +1057,13 @@ void im2col(const float *in, float *out_mat, int height, int width, int dim) {
 
 	
 #ifdef AVX_AVX2
-	const int VEC = 8;
+	const int VEC = INTR_VEC_SIZE;
 	if (dim % VEC == 0) {
 		im2col_opt(in, out_mat, height, width, dim);
 		return;
 	}
 #elif defined(ARM_NEON) 
-	const int VEC = 4;
+	const int VEC = INTR_VEC_SIZE;
 	if (dim % VEC == 0) {
 		im2col_opt(in, out_mat, height, width, dim);
 		return;
@@ -1179,14 +1179,14 @@ int im2col8_mask(const float *in, float *out_mat,
 	int count = 0;
 
 #ifdef AVX_AVX2
-	const int VEC = 8;
+	const int VEC = INTR_VEC_SIZE;
 	if (dim % VEC == 0) {
 		count = im2col8_mask_opt(in, out_mat, height, width, dim,
 			 mask, stride_jump, mask_bias);
 		return count;
 	}
 #elif defined(ARM_NEON) 
-	const int VEC = 4;
+	const int VEC = INTR_VEC_SIZE;
 	if (dim % VEC == 0) {
 		count = im2col8_mask_opt(in, out_mat, height, width, dim,
 			 mask, stride_jump, mask_bias);
@@ -1248,7 +1248,7 @@ int im2col8_mask(const float *in, float *out_mat,
 void col2im8_mask_opt(float *out, const float *in_mat3, float *in_mat1,
 	const float *bias3, const float *bias1, int rows, int dim) {
 
-	const int VEC = 8;
+	const int VEC = INTR_VEC_SIZE;
 	__m256 zero = _mm256_set1_ps(0);
 	__m256 two = _mm256_set1_ps(2);
 
@@ -1318,7 +1318,7 @@ void col2im8_mask_opt(float *out, const float *in_mat3, float *in_mat1,
 void col2im8_mask_opt(float *out, const float *in_mat3, float *in_mat1,
 	const float *bias3, const float *bias1, int rows, int dim) {
 
-	const int VEC = 4;
+	const int VEC = INTR_VEC_SIZE;
 
 	float32x4_t zero = vdupq_n_f32(0);
 	float32x4_t two = vdupq_n_f32(2);
@@ -1385,13 +1385,13 @@ void col2im8_mask(float *out, const float *in_mat3, float *in_mat1,
 
 	
 #ifdef AVX_AVX2
-	const int VEC = 8;
+	const int VEC = INTR_VEC_SIZE;
 	if (dim % VEC == 0) {
 		col2im8_mask_opt(out, in_mat3, in_mat1, bias3, bias1, rows, dim);
 		return;
 	}
 #elif defined(ARM_NEON)
-	const int VEC = 4;
+	const int VEC = INTR_VEC_SIZE;
 	if (dim % VEC == 0) {
 		col2im8_mask_opt(out, in_mat3, in_mat1, bias3, bias1, rows, dim);
 		return;
@@ -1436,7 +1436,7 @@ void col2im8_mask(float *out, const float *in_mat3, float *in_mat1,
 void bias_relu(float *in_out, const float *bias,
 	int rows, int dim) {
 	
-	const int VEC = 8;
+	const int VEC = INTR_VEC_SIZE;
 	int all = rows * dim / VEC;
 	__m256 zero = _mm256_set1_ps(0);
 	for (int y = 0; y < all; y++) {
@@ -1453,7 +1453,7 @@ void bias_relu(float *in_out, const float *bias,
 void add_bias_relu(float *in_out, const float *to_add, const float *bias,
 	int rows, int dim) {
 
-	const int VEC = 8;
+	const int VEC = INTR_VEC_SIZE;
 	int all = rows * dim / VEC;
 	__m256 zero = _mm256_set1_ps(0);
 	for (int y = 0; y < all; y++) {
@@ -1474,7 +1474,7 @@ void add_bias_relu(float *in_out, const float *to_add, const float *bias,
 void bias_relu(float *in_out, const float *bias,
 	int rows, int dim) {
 	
-	const int VEC = 4;
+	const int VEC = INTR_VEC_SIZE;
 	int all = rows * dim / VEC;
 	float32x4_t zero = vdupq_n_f32(0);
 	for (int y = 0; y < all; y++) {
@@ -1491,7 +1491,7 @@ void bias_relu(float *in_out, const float *bias,
 void add_bias_relu(float *in_out, const float *to_add, const float *bias,
 	int rows, int dim) {
 
-	const int VEC = 4;
+	const int VEC = INTR_VEC_SIZE;
 	int all = rows * dim / VEC;
 	float32x4_t zero = vdupq_n_f32(0);
 	for (int y = 0; y < all; y++) {
@@ -1589,7 +1589,7 @@ void bias_relu_pool3_s2(float *out, const float *in_mat, const float *bias,
 void bias_relu_pool2_s2(float *out, const float *in_mat, const float *bias,
 	int height, int width, int dim) {
 
-	const int VEC = 8;
+	const int VEC = INTR_VEC_SIZE;
 
 	int width_pool = width / 2;
 	int height_pool = height / 2;
@@ -1626,7 +1626,7 @@ void bias_relu_pool2_s2(float *out, const float *in_mat, const float *bias,
 void bias_relu_pool2_s2(float *out, const float *in_mat, const float *bias,
 	int height, int width, int dim) {
 
-	const int VEC = 4;
+	const int VEC = INTR_VEC_SIZE;
 	int width_pool = width / 2;
 	int height_pool = height / 2;
 
@@ -1693,7 +1693,7 @@ void bias_relu_pool2_s2(float *out, const float *in_mat, const float *bias,
 void avg_pool2(float *out, const float *in_mat,
 	int height, int width, int dim) {
 
-	const int VEC = 8;
+	const int VEC = INTR_VEC_SIZE;
 	int width_pool = width / 2;
 	int height_pool = height / 2;
 
@@ -1737,7 +1737,7 @@ void avg_pool2(float *out, const float *in_mat,
 void avg_pool2(float *out, const float *in_mat,
 	int height, int width, int dim) {
 
-	const int VEC = 4;
+	const int VEC = INTR_VEC_SIZE;
 	int width_pool = width / 2;
 	int height_pool = height / 2;
 
@@ -1810,7 +1810,7 @@ void avg_pool2(float *out, const float *in_mat,
 void max_pool2(float *out, const float *in_mat,
 	int height, int width, int dim) {
 
-	const int VEC = 8;
+	const int VEC = INTR_VEC_SIZE;
 	int width_pool = width / 2;
 	int height_pool = height / 2;
 
@@ -1844,7 +1844,7 @@ void max_pool2(float *out, const float *in_mat,
 void max_pool2(float *out, const float *in_mat,
 	int height, int width, int dim) {
 
-	const int VEC = 4;
+	const int VEC = INTR_VEC_SIZE;
 	int width_pool = width / 2;
 	int height_pool = height / 2;
 
@@ -1906,7 +1906,7 @@ void max_pool2(float *out, const float *in_mat,
 void col2imVEC_mask_pool_opt(float *out, const float *in_mat3, float *in_mat1,
 	const float *bias3, const float *bias1, int width, int height, int dim) {
 
-	const int VEC = 8;
+	const int VEC = INTR_VEC_SIZE;
 	__m256 two = _mm256_set1_ps(2);
 	__m256 zero = _mm256_set1_ps(0);
 
@@ -1994,7 +1994,7 @@ void col2imVEC_mask_pool_opt(float *out, const float *in_mat3, float *in_mat1,
 void col2im8_mask_pool_opt(float *out, const float *in_mat3, float *in_mat1,
 	const float *bias3, const float *bias1, int width, int height, int dim) {
 
-	const int VEC = 4;
+	const int VEC = INTR_VEC_SIZE;
 	float32x4_t two = vdupq_n_f32(2);
 	float32x4_t zero = vdupq_n_f32(0);
 
@@ -2077,14 +2077,14 @@ void col2im8_mask_pool(float *out, const float *in_mat3, float *in_mat1,
 
 
 #ifdef AVX_AVX2
-	const int VEC = 8;
+	const int VEC = INTR_VEC_SIZE;
 		if (dim % VEC == 0) {
 		col2imVEC_mask_pool_opt(out, in_mat3, in_mat1,
 			bias3, bias1, width, height, dim);
 		return;
 	}
 #elif defined(ARM_NEON)
-	const int VEC = 4;
+	const int VEC = INTR_VEC_SIZE;
 	if (dim % VEC == 0) {
 		col2im8_mask_pool_opt(out, in_mat3, in_mat1,
 			bias3, bias1, width, height, dim);

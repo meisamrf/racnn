@@ -431,6 +431,10 @@ PyInit_racnnlib(void)
 	if (m == NULL)
 		return NULL;
 
+	PyObject * d = PyModule_GetDict(m);
+	PyDict_SetItemString(d, "__version__", PyUnicode_FromString("1.0"));
+	PyDict_SetItemString(d, "vec_size", PyLong_FromLong(INTR_VEC_SIZE));
+
 	GenError = PyErr_NewException("racnnlib.error", NULL, NULL);
 	Py_INCREF(GenError);
 	PyModule_AddObject(m, "error", GenError);

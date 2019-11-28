@@ -1,5 +1,13 @@
 #pragma once
 
+#ifdef AVX_AVX2
+#define INTR_VEC_SIZE 8
+#elif defined(ARM_NEON)
+#define INTR_VEC_SIZE 4
+#else
+#define INTR_VEC_SIZE 1
+#endif
+
 void im2col(const float *in, float *out_mat, int height, int width, int dim);
 void im2col7x7rgb(const float *in, float *out_mat, int height, int width);
 int im2col8_mask(const float *in, float *out_mat,
