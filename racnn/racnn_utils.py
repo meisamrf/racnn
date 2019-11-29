@@ -138,18 +138,17 @@ def update_weight_macro_block(wlayer, w_idx_in, w_idx_out, identity_num, extra_d
     return w_idx_out, w_idx_in
 
 
-def rearrange_weights(weights, model_type, bypass=False, extra_dim=8):
+def rearrange_weights(weights, model_type, bypass=False, extra_dim=1):
 
     '''
-    extra_dim considered for mask is 8 for CPU (for vector processing) and 1 for GPU
-
+    extra_dim considered for mask is vector size for CPU (for vector processing) and 1 for GPU
     '''
 
     if model_type=='vgg':
         w_idx_in = 0
         w_idx_out = 0
         for k in range(7):
-            w_idx_out, w_idx_in = update_weight_conv(weights, w_idx_in, w_idx_out, extra_dim, bypass=bypass)        
+            w_idx_out, w_idx_in = update_weight_conv(weights, w_idx_in, w_idx_out, extra_dim, bypass=bypass)
         for k in range(6):
             w_idx_out, w_idx_in = update_weight_conv(weights, w_idx_in, w_idx_out, extra_dim, bypass=False)
         for k in range(2):

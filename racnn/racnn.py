@@ -72,8 +72,8 @@ class RACNNLayer():
         outmul_noc = np.reshape(buffer_in[0: count*weight3x3_noc.shape[1]], (count, weight3x3_noc.shape[1]))
         np.matmul(out_mat3x3[0:count], weight3x3_noc, out = outmul_noc)
 
-        dim = out1x1.shape[1]-8
-        img_out = np.reshape(buffer_out3x3[0: out1x1.shape[0]*(out1x1.shape[1]-8)], (out1x1.shape[0], dim))
+        dim = out1x1.shape[1]-racnnlib.vec_size
+        img_out = np.reshape(buffer_out3x3[0: out1x1.shape[0]*dim], (out1x1.shape[0], dim))
 
         if pool:                
             outsize = h//2, w//2, dim
@@ -168,7 +168,7 @@ class vgg16_racnn():
             self.buffer3 = np.zeros((h*w*64*9+16, ), np.float32)
             self.buffer3 = racnn_utils.mem_align(self.buffer3)
 
-        racnn_utils.rearrange_weights(self.weights, 'vgg', bypass=bypass, extra_dim=8)
+        racnn_utils.rearrange_weights(self.weights, 'vgg', bypass=bypass, extra_dim=racnnlib.vec_size)
 
     def vgg_conv_block_bypass(input_size, buffer_in, buffer_out, buffer_tmp, wlayer, ix, 
                               block_count):
@@ -280,7 +280,7 @@ class resnet50_racnn():
             self.buffer4 = np.zeros(((h//2)*(w//2)*64+16, ), np.float32)
             self.buffer4 = racnn_utils.mem_align(self.buffer4)
 
-        racnn_utils.rearrange_weights(self.weights, 'resnet', bypass=bypass, extra_dim=8)
+        racnn_utils.rearrange_weights(self.weights, 'resnet', bypass=bypass, extra_dim=racnnlib.vec_size)
 
     def resnet_conv_block_racnn(input_size, shortcut_b, buffer1, buffer2, buffer3, wlayer, ix, 
                                  bypass=True):

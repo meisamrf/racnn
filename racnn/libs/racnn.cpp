@@ -31,7 +31,7 @@ void copy3x3(const float *in, float *out, int x, int y, int width, int dim) {
 #ifdef AVX_AVX2
 void copy3x3_opt(const float *in, float *out, int x, int y, int width, int dim) {
 
-	
+
 	const int VEC = INTR_VEC_SIZE;
 	const float *pin;
 
@@ -103,7 +103,7 @@ void max3x3_opt(const float *in, float *out, const float *bias, int xo, int yo, 
 
 	const float *pin;
 	__m256 zero = _mm256_set1_ps(0);
-	
+
 	pin = &in[(xo + yo * width)*dim];
 	float *outp = out;
 	int dim_n = dim / VEC;
@@ -199,13 +199,13 @@ void max3x3cond_opt(const float *in, float *out, const float *bias, int xo,
 void max3x3_opt(const float *in, float *out, const float *bias, int xo, int yo, int width, int dim) {
 
 	const int VEC = INTR_VEC_SIZE;
-	
+
 	const float *pin;
 	float32x4_t zero = vdupq_n_f32(0);
 
 	pin = &in[(xo + yo * width)*dim];
 	float *outp = out;
-	
+
 
 	int dim_n = dim / VEC;
 	for (int d = dim_n; d > 0; d--) {
@@ -1055,7 +1055,7 @@ void im2col_opt(const float *in, float *out_mat, int height, int width, int dim)
 
 void im2col(const float *in, float *out_mat, int height, int width, int dim) {
 
-	
+
 #ifdef AVX_AVX2
 	const int VEC = INTR_VEC_SIZE;
 	if (dim % VEC == 0) {
@@ -1182,16 +1182,16 @@ int im2col8_mask(const float *in, float *out_mat,
 	const int VEC = INTR_VEC_SIZE;
 	if (dim % VEC == 0) {
 		count = im2col8_mask_opt(in, out_mat, height, width, dim,
-			 mask, stride_jump, mask_bias);
+			mask, stride_jump, mask_bias);
 		return count;
 	}
 #elif defined(ARM_NEON) 
 	const int VEC = INTR_VEC_SIZE;
 	if (dim % VEC == 0) {
 		count = im2col8_mask_opt(in, out_mat, height, width, dim,
-			 mask, stride_jump, mask_bias);
+			mask, stride_jump, mask_bias);
 		return count;
-	}	
+	}
 #endif
 	int height_lim = height - 1;
 	int width_lim = width - 1;
@@ -1254,8 +1254,8 @@ void col2im8_mask_opt(float *out, const float *in_mat3, float *in_mat1,
 
 	for (int y = 0; y < rows; y++) {
 		float m = *in_mat1++;
-		// for vector (x8) alignment
-		in_mat1 += 7;
+		// for vector (e.g., x8) alignment
+		in_mat1 += (INTR_VEC_SIZE - 1);
 
 		if (m <= 0) {
 			for (int d = 0; d < dim; d += VEC) {
@@ -1274,7 +1274,7 @@ void col2im8_mask_opt(float *out, const float *in_mat3, float *in_mat1,
 				__m256 b1 = _mm256_load_ps(&bias1[d]);
 				//__m256 z = _mm256_mul_ps(data1, two);
 				//z = _mm256_add_ps(z, b1);
-				__m256 z = _mm256_fmadd_ps(data1, two, b1);				
+				__m256 z = _mm256_fmadd_ps(data1, two, b1);
 				__m256 data3 = _mm256_load_ps(in_mat3);
 				__m256 b3 = _mm256_load_ps(&bias3[d]);
 				data3 = _mm256_add_ps(data3, b3);
@@ -1325,8 +1325,8 @@ void col2im8_mask_opt(float *out, const float *in_mat3, float *in_mat1,
 
 	for (int y = 0; y < rows; y++) {
 		float m = *in_mat1++;
-		// for vector (x8) alignment
-		in_mat1 += 7;
+		// for vector (e.g., x8) alignment
+		in_mat1 += (INTR_VEC_SIZE - 1);
 
 		if (m <= 0) {
 			for (int d = 0; d < dim; d += VEC) {
@@ -1383,7 +1383,7 @@ void col2im8_mask_opt(float *out, const float *in_mat3, float *in_mat1,
 void col2im8_mask(float *out, const float *in_mat3, float *in_mat1,
 	const float *bias3, const float *bias1, int rows, int dim) {
 
-	
+
 #ifdef AVX_AVX2
 	const int VEC = INTR_VEC_SIZE;
 	if (dim % VEC == 0) {
@@ -1400,8 +1400,8 @@ void col2im8_mask(float *out, const float *in_mat3, float *in_mat1,
 
 	for (int y = 0; y < rows; y++) {
 		float m = *in_mat1++;
-		// for vector (x8) alignment
-		in_mat1 += 7;
+		// for vector (e.g., x8) alignment
+		in_mat1 += (INTR_VEC_SIZE - 1);
 		if (m < 0) m = 0;
 		if (m > 1) m = 1;
 
@@ -1435,7 +1435,7 @@ void col2im8_mask(float *out, const float *in_mat3, float *in_mat1,
 #ifdef AVX_AVX2 
 void bias_relu(float *in_out, const float *bias,
 	int rows, int dim) {
-	
+
 	const int VEC = INTR_VEC_SIZE;
 	int all = rows * dim / VEC;
 	__m256 zero = _mm256_set1_ps(0);
@@ -1473,7 +1473,7 @@ void add_bias_relu(float *in_out, const float *to_add, const float *bias,
 #elif defined(ARM_NEON)
 void bias_relu(float *in_out, const float *bias,
 	int rows, int dim) {
-	
+
 	const int VEC = INTR_VEC_SIZE;
 	int all = rows * dim / VEC;
 	float32x4_t zero = vdupq_n_f32(0);
@@ -1512,25 +1512,25 @@ void add_bias_relu(float *in_out, const float *to_add, const float *bias,
 
 void bias_relu(float *in_out, const float *bias,
 	int rows, int dim) {
-	
-	int all = rows*dim;
+
+	int all = rows * dim;
 	for (int y = 0; y < all; y++) {
-			float z = (*in_out) + bias[y%dim];
-			if (z < 0)
-				z = 0;
-			*in_out++ = z;			
+		float z = (*in_out) + bias[y%dim];
+		if (z < 0)
+			z = 0;
+		*in_out++ = z;
 	}
 }
 void add_bias_relu(float *in_out, const float *to_add, const float *bias,
 	int rows, int dim) {
-	
-	int all = rows*dim;
+
+	int all = rows * dim;
 	for (int y = 0; y < all; y++) {
-			float z = (*in_out) + bias[y%dim];
-			z += (*to_add++);
-			if (z < 0)
-				z = 0;
-			*in_out++ = z;			
+		float z = (*in_out) + bias[y%dim];
+		z += (*to_add++);
+		if (z < 0)
+			z = 0;
+		*in_out++ = z;
 	}
 }
 #endif
@@ -1607,7 +1607,7 @@ void bias_relu_pool2_s2(float *out, const float *in_mat, const float *bias,
 		int y_off = (y >> 1)*width_pool;
 		for (int x = 0; x < width; x++) {
 			float *outp = &out[(y_off + (x >> 1))*dim];
-			for (int d = 0; d < dim; d+=VEC) {
+			for (int d = 0; d < dim; d += VEC) {
 				__m256 a = _mm256_load_ps(in_mat);
 				__m256 b = _mm256_load_ps(&bias[d]);
 				__m256 c = _mm256_add_ps(a, b);
@@ -1643,7 +1643,7 @@ void bias_relu_pool2_s2(float *out, const float *in_mat, const float *bias,
 		int y_off = (y >> 1)*width_pool;
 		for (int x = 0; x < width; x++) {
 			float *outp = &out[(y_off + (x >> 1))*dim];
-			for (int d = 0; d < dim; d+=VEC) {
+			for (int d = 0; d < dim; d += VEC) {
 				float32x4_t a = vld1q_f32(in_mat);
 				float32x4_t b = vld1q_f32(&bias[d]);
 				float32x4_t c = vaddq_f32(a, b);
@@ -1677,7 +1677,7 @@ void bias_relu_pool2_s2(float *out, const float *in_mat, const float *bias,
 			const float *biasp = bias;
 			for (int d = dim; d > 0; d--) {
 				float z = (*in_mat++) + (*biasp++);
-				if (z>(*outp))
+				if (z > (*outp))
 					*outp = z;
 				//z = fmaxf(z, 0);
 				//*outp = fmaxf(z, *outp);
@@ -1730,7 +1730,7 @@ void avg_pool2(float *out, const float *in_mat,
 		_mm256_store_ps(outp, b);
 		outp += VEC;
 	}
-	
+
 }
 #elif defined (ARM_NEON)
 
@@ -1766,7 +1766,7 @@ void avg_pool2(float *out, const float *in_mat,
 	}
 
 	outp = out;
-	float32x4_t one_four = vdupq_n_f32(1/4.0f);
+	float32x4_t one_four = vdupq_n_f32(1 / 4.0f);
 
 	for (int y = 0; y < mat_size_n; y++) {
 		float32x4_t b = vld1q_f32(outp);
@@ -1774,7 +1774,7 @@ void avg_pool2(float *out, const float *in_mat,
 		vst1q_f32(outp, b);
 		outp += VEC;
 	}
-	
+
 }
 #else
 void avg_pool2(float *out, const float *in_mat,
@@ -1828,7 +1828,7 @@ void max_pool2(float *out, const float *in_mat,
 		for (int x = 0; x < width; x++) {
 			float *outp = &out[(y_off + (x >> 1))*dim];
 			for (int d = 0; d < dim; d += VEC) {
-				__m256 a = _mm256_load_ps(in_mat);				
+				__m256 a = _mm256_load_ps(in_mat);
 				__m256 e = _mm256_load_ps(outp);
 				e = _mm256_max_ps(e, a);
 				_mm256_store_ps(outp, e);
@@ -1862,7 +1862,7 @@ void max_pool2(float *out, const float *in_mat,
 		for (int x = 0; x < width; x++) {
 			float *outp = &out[(y_off + (x >> 1))*dim];
 			for (int d = 0; d < dim; d += VEC) {
-				float32x4_t a = vld1q_f32(in_mat);				
+				float32x4_t a = vld1q_f32(in_mat);
 				float32x4_t e = vld1q_f32(outp);
 				e = vmaxq_f32(e, a);
 				vst1q_f32(outp, e);
@@ -1891,7 +1891,7 @@ void max_pool2(float *out, const float *in_mat,
 			float *outp = &out[(y_off + (x >> 1))*dim];
 			for (int d = dim; d > 0; d--) {
 				float z = (*in_mat++);
-				if (z>(*outp))
+				if (z > (*outp))
 					*outp = z;
 				//*outp = fmaxf(z, *outp);
 				outp++;
@@ -1915,7 +1915,7 @@ void col2imVEC_mask_pool_opt(float *out, const float *in_mat3, float *in_mat1,
 
 	float *outp = out;
 	int mat_size = height_pool * width_pool*dim;
-	
+
 	int mat_size_n = mat_size / VEC;
 	for (int y = 0; y < mat_size_n; y++) {
 		_mm256_store_ps(outp, zero);
@@ -1927,8 +1927,8 @@ void col2imVEC_mask_pool_opt(float *out, const float *in_mat3, float *in_mat1,
 		for (int x = 0; x < width; x++) {
 			float *outp = &out[(y_off + (x >> 1))*dim];
 			float m = *in_mat1++;
-			// for vector (xVEC) alignment
-			in_mat1 += 7;
+			// for vector (e.g., x8) alignment
+			in_mat1 += (INTR_VEC_SIZE - 1);
 
 			if (m <= 0) {
 				for (int d = 0; d < dim; d += VEC) {
@@ -1972,7 +1972,7 @@ void col2imVEC_mask_pool_opt(float *out, const float *in_mat3, float *in_mat1,
 					__m256 z = _mm256_fmadd_ps(data1, mplus, b1);
 					__m256 data3 = _mm256_load_ps(in_mat3);
 					__m256 b3 = _mm256_load_ps(&bias3[d]);
-					data3 = _mm256_add_ps(data3, b3);					
+					data3 = _mm256_add_ps(data3, b3);
 					//data3 = _mm256_mul_ps(data3, m_);
 					//z = _mm256_add_ps(z, data3);
 					z = _mm256_fmadd_ps(data3, m_, z);
@@ -2003,7 +2003,7 @@ void col2im8_mask_pool_opt(float *out, const float *in_mat3, float *in_mat1,
 
 	float *outp = out;
 	int mat_size = height_pool * width_pool*dim;
-	
+
 	int mat_size_n = mat_size / VEC;
 	for (int y = 0; y < mat_size_n; y++) {
 		vst1q_f32(outp, zero);
@@ -2015,8 +2015,8 @@ void col2im8_mask_pool_opt(float *out, const float *in_mat3, float *in_mat1,
 		for (int x = 0; x < width; x++) {
 			float *outp = &out[(y_off + (x >> 1))*dim];
 			float m = *in_mat1++;
-			// for vector (x8) alignment
-			in_mat1 += 7;
+			// for vector (e.g., x8) alignment
+			in_mat1 += (INTR_VEC_SIZE - 1);
 
 			if (m <= 0) {
 				for (int d = 0; d < dim; d += VEC) {
@@ -2056,7 +2056,7 @@ void col2im8_mask_pool_opt(float *out, const float *in_mat3, float *in_mat1,
 					float32x4_t z = vmlaq_f32(b1, data1, mplus);
 					float32x4_t data3 = vld1q_f32(in_mat3);
 					float32x4_t b3 = vld1q_f32(&bias3[d]);
-					data3 = vaddq_f32(data3, b3);					
+					data3 = vaddq_f32(data3, b3);
 					z = vmlaq_f32(z, data3, m_);
 					float32x4_t e = vld1q_f32(outp);
 					z = vmaxq_f32(e, z);
@@ -2078,7 +2078,7 @@ void col2im8_mask_pool(float *out, const float *in_mat3, float *in_mat1,
 
 #ifdef AVX_AVX2
 	const int VEC = INTR_VEC_SIZE;
-		if (dim % VEC == 0) {
+	if (dim % VEC == 0) {
 		col2imVEC_mask_pool_opt(out, in_mat3, in_mat1,
 			bias3, bias1, width, height, dim);
 		return;
@@ -2106,8 +2106,8 @@ void col2im8_mask_pool(float *out, const float *in_mat3, float *in_mat1,
 		for (int x = 0; x < width; x++) {
 			float *outp = &out[(y_off + (x >> 1))*dim];
 			float m = *in_mat1++;
-			// for vector (x8) alignment
-			in_mat1 += 7;
+			// for vector (e.g, x8) alignment
+			in_mat1 += (INTR_VEC_SIZE - 1);
 			if (m < 0) m = 0;
 			if (m > 1) m = 1;
 
@@ -2122,7 +2122,7 @@ void col2im8_mask_pool(float *out, const float *in_mat3, float *in_mat1,
 					float z3 = data3 * m;
 					z += z3;
 					if (z < 0) z = 0;
-					if (z > *outp) 
+					if (z > *outp)
 						*outp = z;
 					outp++;
 				}
