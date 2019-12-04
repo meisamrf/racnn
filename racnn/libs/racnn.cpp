@@ -1441,7 +1441,7 @@ void bias_relu(float *in_out, const float *bias,
 	__m256 zero = _mm256_set1_ps(0);
 	for (int y = 0; y < all; y++) {
 		__m256 a = _mm256_load_ps(in_out);
-		int ib = (y << 3) % dim;
+		int ib = (y * VEC) % dim;
 		__m256 b = _mm256_load_ps(&bias[ib]);
 		__m256 c = _mm256_add_ps(a, b);
 		c = _mm256_max_ps(c, zero);
@@ -1459,7 +1459,7 @@ void add_bias_relu(float *in_out, const float *to_add, const float *bias,
 	for (int y = 0; y < all; y++) {
 		__m256 a = _mm256_load_ps(in_out);
 		__m256 d = _mm256_load_ps(to_add);
-		int ib = (y << 3) % dim;
+		int ib = (y * VEC) % dim;
 		__m256 b = _mm256_load_ps(&bias[ib]);
 		__m256 c = _mm256_add_ps(a, b);
 		c = _mm256_add_ps(c, d);

@@ -17,8 +17,8 @@ PyObject* py_im2col(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "OOi|Of", &arg1, &arg2, &kernel_size, &arg3, &mask_bias))
 		return NULL;
 
-		
-	if ((PyObject_GetBuffer(arg1, &b_imgin, PyBUF_FULL) < 0) || 
+
+	if ((PyObject_GetBuffer(arg1, &b_imgin, PyBUF_FULL) < 0) ||
 		(PyObject_GetBuffer(arg2, &b_imgout, PyBUF_FULL) < 0))
 		return NULL;
 
@@ -30,7 +30,7 @@ PyObject* py_im2col(PyObject *self, PyObject *args)
 		PyErr_SetString(GenError, "input/output dimension type error");
 		return NULL;
 	}
-	
+
 	int img_row = (int)b_imgin.shape[0];
 	int img_col = (int)b_imgin.shape[1];
 	int img_dim = (int)b_imgin.shape[2];
@@ -95,7 +95,7 @@ PyObject* py_im2col(PyObject *self, PyObject *args)
 
 	PyObject* res = PyLong_FromLong(count);
 	PyBuffer_Release(&b_imgin);
-	PyBuffer_Release(&b_imgout);	
+	PyBuffer_Release(&b_imgout);
 
 	return res;
 }
@@ -110,16 +110,16 @@ PyObject* py_col2im_mask(PyObject *self, PyObject *args)
 		return NULL;
 
 	if ((PyObject_GetBuffer(arg1, &b_imgin3, PyBUF_FULL) < 0) || (PyObject_GetBuffer(arg2, &b_imgin1, PyBUF_FULL) < 0)
-		|| (PyObject_GetBuffer(arg3, &b_bias3, PyBUF_FULL) < 0)	
+		|| (PyObject_GetBuffer(arg3, &b_bias3, PyBUF_FULL) < 0)
 		|| (PyObject_GetBuffer(arg4, &b_bias1, PyBUF_FULL) < 0) || (PyObject_GetBuffer(arg5, &b_out, PyBUF_FULL) < 0))
 		return NULL;
 
-	if (b_imgin3.itemsize != 4 || b_imgin1.itemsize != 4 || 
+	if (b_imgin3.itemsize != 4 || b_imgin1.itemsize != 4 ||
 		b_bias3.itemsize != 4 || b_bias1.itemsize != 4 || b_out.itemsize != 4) {
 		PyErr_SetString(GenError, "data type error");
 		return NULL;
 	}
-	if (b_imgin3.ndim != 2 || b_imgin1.ndim != 2 ||	b_bias3.ndim != 1 
+	if (b_imgin3.ndim != 2 || b_imgin1.ndim != 2 || b_bias3.ndim != 1
 		|| b_bias1.ndim != 1) {
 		PyErr_SetString(GenError, "dimension type error");
 		return NULL;
@@ -130,10 +130,10 @@ PyObject* py_col2im_mask(PyObject *self, PyObject *args)
 
 	int img_row_o1 = (int)b_imgin1.shape[0];
 	int img_col_o1 = (int)b_imgin1.shape[1];
-	int dim = img_col_o1 - 8;
+	int dim = img_col_o1 - INTR_VEC_SIZE;
 
 	if (img_row_o3 > img_row_o1 || img_col_o3 != dim ||
-		b_bias3.shape[0]!= dim || b_bias1.shape[0] != dim) {
+		b_bias3.shape[0] != dim || b_bias1.shape[0] != dim) {
 		PyErr_SetString(GenError, "Input dimension error .\n");
 		return NULL;
 	}
@@ -180,34 +180,34 @@ PyObject* py_bias_relu(PyObject *self, PyObject *args)
 	Py_buffer b_imgout, b_imgin, b_bias;
 
 	arg3 = Py_None;
-	int pool_size=0;
+	int pool_size = 0;
 	if (!PyArg_ParseTuple(args, "OO|Oi", &arg1, &arg2, &arg3, &pool_size))
 		return NULL;
 
-	if ((PyObject_GetBuffer(arg1, &b_imgin, PyBUF_FULL) < 0) || 
+	if ((PyObject_GetBuffer(arg1, &b_imgin, PyBUF_FULL) < 0) ||
 		(PyObject_GetBuffer(arg2, &b_bias, PyBUF_FULL) < 0))
 		return NULL;
 
-	
+
 	if (b_imgin.itemsize != 4 || b_bias.itemsize != 4) {
 		PyErr_SetString(GenError, "data type error");
 		return NULL;
 	}
-	
+
 	int img_row = (int)b_imgin.shape[0];
 	int img_col = (int)b_imgin.shape[1];
-	int img_dim = (int)b_imgin.shape[2];	
+	int img_dim = (int)b_imgin.shape[2];
 
 	if (arg3 != Py_None) {
 
 		if (PyObject_GetBuffer(arg3, &b_imgout, PyBUF_FULL) < 0)
 			return NULL;
-		
+
 		if (b_imgout.itemsize != 4 || b_imgout.ndim != 3) {
 			PyErr_SetString(GenError, "output data type/dimension error");
 			return NULL;
 		}
-		
+
 		if (b_imgin.ndim != 3 || b_bias.ndim != 1) {
 			PyErr_SetString(GenError, "dimension type error");
 			return NULL;
@@ -234,7 +234,7 @@ PyObject* py_bias_relu(PyObject *self, PyObject *args)
 		else {
 			PyErr_SetString(GenError, "pool size error");
 			return NULL;
-		}		
+		}
 
 		PyBuffer_Release(&b_imgout);
 
@@ -298,7 +298,7 @@ PyObject* py_add_bias_relu(PyObject *self, PyObject *args)
 	int img_row = (int)b_imgin.shape[0];
 	int img_dim = (int)b_imgin.shape[1];
 
-	if ((int)b_bias.shape[0] != img_dim || (int)b_bias.shape[0] != (int)b_imgadd.shape[1]||
+	if ((int)b_bias.shape[0] != img_dim || (int)b_bias.shape[0] != (int)b_imgadd.shape[1] ||
 		img_row != (int)b_imgadd.shape[0]) {
 		PyErr_SetString(GenError, "Output dimension error .\n");
 		return NULL;
@@ -407,7 +407,7 @@ PyObject* py_max_pool2(PyObject *self, PyObject *args)
 
 PyMethodDef racnnlib_methods[] = {
 	{ "im2col", (PyCFunction)py_im2col, METH_VARARGS, "Image to column reshape with or without mask" },
-	{ "col2im_mask",(PyCFunction)py_col2im_mask,METH_VARARGS,"Column to image with mask" },
+	{ "col2im_mask",(PyCFunction)py_col2im_mask,METH_VARARGS,"Column to image with mask (alpha)" },
 	{ "bias_relu",(PyCFunction)py_bias_relu,METH_VARARGS,"Applies bias and relu" },
 	{ "add_bias_relu",(PyCFunction)py_add_bias_relu,METH_VARARGS,"Adds two and applies bias and relu on results" },
 	{ "avg_pool2",(PyCFunction)py_avg_pool2,METH_VARARGS,"Average pool 2" },
