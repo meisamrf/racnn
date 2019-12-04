@@ -47,3 +47,10 @@ RACNN using NVIDIA GPU.
 	`python3 setup.py build` and copy the compiled modules (*.pyd for windows and *.so for linux to your working directory) 	
      
 
+### Results
+
+Results will be updated [here](results/results.md)
+
+### Weights and test data
+
+weights and test data can be downloaded from [racnn1.0](https://github.com/meisamrf/racnn/releases/tag/1.0)
