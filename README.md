@@ -1,7 +1,7 @@
 # RACNN
 ### Radius Adaptive Convolutional Neural Net
 
-
+This is an implementation of [RACNN](https://arxiv.org/pdf/1911.11079.pdf) on Python, Keras, and TensorFlow.
 Radius adaptive CNN is a method that adopts different kernel
 sizes (or radii) based on the input content. α defines how much of
 the neighboring pixels are taken into account. α=0 and α=1 are
