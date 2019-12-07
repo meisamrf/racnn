@@ -7,9 +7,9 @@ if platform.system() == "Windows":
 		compiler_options = ['-DAVX_AVX2']
 elif platform.system() == "Linux":
 	if platform.machine()=='x86_64':
-		compiler_options = ['-std=c++11', '-DAVX_AVX2', '-march=native']
+		compiler_options = ['-std=c++11', '-DAVX_AVX2', '-march=native', '-O3']
 	elif platform.machine()=='armv7l':
-		compiler_options = ['-std=c++11', '-DARM_NEON', '-mfpu=neon', '-mcpu=''cortex-a72''',  '-mtune=''cortex-a72''']
+		compiler_options = ['-std=c++11', '-DARM_NEON', '-mfpu=neon', '-mcpu=''cortex-a72''',  '-mtune=''cortex-a72''', '-O3']
 	
 		
 module = Extension('racnnlib',
